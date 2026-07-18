@@ -1,0 +1,52 @@
+# secrets
+.env
+backend/.env
+*.env.local
+frontend/.env.local
+
+# sqlite db
+*.db
+backend/*.db
+
+# python
+__pycache__/
+*.pyc
+
+# node
+node_modules/
+.next/
+
+# build artifacts / handoff
+growth_os_handoff.zip
+
+# local planning notes
+docs/*任务说明书.md
+docs/*原理与任务.md
+
+# local agent context
+AGENTS.md
+CLAUDE.md
+frontend/AGENTS.md
+frontend/CLAUDE.md
+
+# 规划文件 / 打包产物(本地保留,不上传)
+Growth_OS_规划*.xlsx
+mock.zip
+prompts.zip
+
+# 参考模板图(本地保留)
+linshi/
+
+# 本地/无关(不上传)
+.claude/
+build_excel*.py
+Growth_OS_对话记录.md
+make_chatlog.py
+
+# Next.js 默认模板图/README(没用,本地保留)
+frontend/public/next.svg
+frontend/public/vercel.svg
+frontend/public/file.svg
+frontend/public/globe.svg
+frontend/public/window.svg
+frontend/README.md
