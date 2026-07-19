@@ -142,7 +142,7 @@ export function RouteRibbon({ steps, active = 0 }) {
   );
 }
 
-export function BotanicalAccent({ className = "" }) {
+export function RouteAccent({ className = "" }) {
   return (
     <svg viewBox="0 0 220 180" aria-hidden="true" className={`pointer-events-none select-none text-accent2 ${className}`} fill="none">
       <path d="M12 142C42 72 84 159 119 87C145 33 176 44 211 16" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />

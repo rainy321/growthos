@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useGrowth } from "../providers";
 import { api } from "@/lib/api";
-import { Bar, BotanicalAccent, Btn, Card, EmptyState, PageHeader, SectionTitle, Tag } from "../ui";
+import { Bar, Btn, Card, EmptyState, PageHeader, RouteAccent, SectionTitle, Tag } from "../ui";
 
 const pct = (n) => Math.round((n || 0) * 100);
 
@@ -93,7 +93,7 @@ export default function ReviewPage() {
       {err ? <div role="alert" className="mb-4 rounded-[12px] border border-danger/20 bg-dangersoft px-4 py-2.5 text-sm font-semibold text-danger">{err}</div> : null}
 
       <Card tone="info" className="relative mb-5 overflow-hidden">
-        <BotanicalAccent className="absolute -bottom-14 -right-12 h-44 w-52 rotate-[-16deg] opacity-25" />
+        <RouteAccent className="absolute -bottom-14 -right-12 h-44 w-52 rotate-[-16deg] opacity-25" />
         <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
             <div className="flex items-center gap-2 text-sm font-bold text-ink">
@@ -119,7 +119,7 @@ export default function ReviewPage() {
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <Card className="relative overflow-hidden">
-          <BotanicalAccent className="absolute -right-16 -top-14 h-44 w-52 opacity-20" />
+          <RouteAccent className="absolute -right-16 -top-14 h-44 w-52 opacity-20" />
           <SectionTitle
             icon={Sparkles}
             title="识别行为信号"
@@ -170,7 +170,7 @@ export default function ReviewPage() {
         </Card>
 
         <Card tone="accent" className="relative overflow-hidden">
-          <BotanicalAccent className="absolute -bottom-14 -right-14 h-44 w-52 rotate-[-18deg] opacity-30" />
+          <RouteAccent className="absolute -bottom-14 -right-14 h-44 w-52 rotate-[-18deg] opacity-30" />
           <SectionTitle
             icon={SlidersHorizontal}
             title="生成新路线"

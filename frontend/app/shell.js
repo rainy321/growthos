@@ -26,7 +26,7 @@ import {
 import { useGrowth } from "./providers";
 import { api } from "@/lib/api";
 import { TONES } from "./shared";
-import { BotanicalAccent, Btn, Tag } from "./ui";
+import { Btn, RouteAccent, Tag } from "./ui";
 
 const NAV = [
   { href: "/", label: "总览", icon: LayoutDashboard },
@@ -88,7 +88,7 @@ function LoginScreen() {
     <main className="min-h-screen px-5 py-8 sm:px-8">
       <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1fr_420px]">
         <section className="route-grid relative hidden overflow-hidden rounded-[24px] border border-accent/15 bg-[rgba(251,253,252,0.88)] p-8 shadow-[var(--shadow-soft)] backdrop-blur-xl lg:block">
-          <BotanicalAccent className="absolute -bottom-8 -right-8 h-52 w-64 opacity-50" />
+          <RouteAccent className="absolute -bottom-8 -right-8 h-52 w-64 opacity-50" />
           <div className="absolute right-8 top-8 flex items-center gap-2 text-accent2/40">
             <Leaf size={26} />
             <Route size={20} />
@@ -434,7 +434,7 @@ export default function Shell({ children }) {
         </nav>
 
         <div className="relative mx-4 mb-4 overflow-hidden rounded-[14px] border border-line/80 bg-card/60 p-3">
-          <BotanicalAccent className="absolute -bottom-10 -right-12 h-28 w-36 rotate-[-18deg] opacity-25" />
+          <RouteAccent className="absolute -bottom-10 -right-12 h-28 w-36 rotate-[-18deg] opacity-25" />
           <div className="relative z-10 flex items-center gap-2 text-xs font-bold text-ink">
             <Sparkles size={14} className="text-accent" />
             计划会根据你重新导航

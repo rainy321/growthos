@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { useGrowth } from "./providers";
 import { api } from "@/lib/api";
-import { Bar, BotanicalAccent, Card, EmptyState, PageHeader, RouteRibbon, SectionTitle, Stat, Tag } from "./ui";
+import { Bar, Card, EmptyState, PageHeader, RouteAccent, RouteRibbon, SectionTitle, Stat, Tag } from "./ui";
 
 const pct = (n) => Math.round((n || 0) * 100);
 const ROUTE_STEPS = ["目标", "拆解", "今日行动", "行为信号", "复盘", "重规划"];
@@ -64,7 +64,7 @@ export default function Overview() {
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.2fr_0.8fr]">
         <Card tone="soft" className="route-grid relative min-h-[310px] overflow-hidden">
-          <BotanicalAccent className="absolute -right-8 -top-4 h-40 w-48 opacity-55" />
+          <RouteAccent className="absolute -right-8 -top-4 h-40 w-48 opacity-55" />
           <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_180px] lg:items-center">
             <div>
               <div className="mb-5 flex flex-wrap gap-2">
@@ -198,7 +198,7 @@ export default function Overview() {
         </Card>
 
         <Card className="relative overflow-hidden">
-          <BotanicalAccent className="absolute -bottom-12 -right-12 h-40 w-48 rotate-[-18deg] opacity-35" />
+          <RouteAccent className="absolute -bottom-12 -right-12 h-40 w-48 rotate-[-18deg] opacity-35" />
           <SectionTitle icon={Sparkles} title="导航记忆" desc="系统从长期行为里学到的个人规律。" />
           <div className="relative z-10 space-y-3">
             {(mem || []).slice(0, 4).map((m) => (

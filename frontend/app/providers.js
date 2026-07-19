@@ -90,6 +90,7 @@ export function GrowthProvider({ children }) {
 
   function startDemo() {
     const user = api.startDemo();
+    window.localStorage.removeItem("growthos_token");
     setSimDate(isoToday());
     window.localStorage.setItem("gos_sim", isoToday());
     login(user);

@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useGrowth } from "../providers";
 import { api } from "@/lib/api";
-import { Bar, BotanicalAccent, Btn, Card, EmptyState, PageHeader, SectionTitle, Tag } from "../ui";
+import { Bar, Btn, Card, EmptyState, PageHeader, RouteAccent, SectionTitle, Tag } from "../ui";
 import { FEEDBACK, PRESETS, addDay, goalDaysLeft, pick } from "../shared";
 
 const diffTone = { 高: "danger", 中: "warn", 低: "accent" };
@@ -227,7 +227,7 @@ export default function TasksPage() {
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.25fr_0.85fr]">
         <div className="space-y-5">
           <Card className="relative overflow-hidden">
-            <BotanicalAccent className="absolute -right-16 -top-14 h-44 w-52 opacity-20" />
+            <RouteAccent className="absolute -right-16 -top-14 h-44 w-52 opacity-20" />
             <SectionTitle
               icon={Route}
               title="当前航线"
@@ -356,7 +356,7 @@ export default function TasksPage() {
 
         <div className="space-y-5">
           <Card tone="accent" className="relative overflow-hidden">
-            <BotanicalAccent className="absolute -bottom-12 -right-14 h-44 w-52 rotate-[-18deg] opacity-30" />
+            <RouteAccent className="absolute -bottom-12 -right-14 h-44 w-52 rotate-[-18deg] opacity-30" />
             <SectionTitle icon={Target} title="设定长期方向" desc="先明确方向和现实周期，再让系统拆成可验证的阶段。" />
 
             <div className="space-y-3">
