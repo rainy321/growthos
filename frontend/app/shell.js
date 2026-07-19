@@ -386,7 +386,7 @@ function CelebrationModal({ goals, onClose }) {
 }
 
 export default function Shell({ children }) {
-  const { me, logout, simDate, dayN, tone, newlyCompleted, clearCelebration, isDemo, resetDemoData, dataStatus, dataError } = useGrowth();
+  const { me, logout, simDate, dayN, tone, newlyCompleted, clearCelebration, isDemo, resetDemoData, dataStatus, dataError, serviceInfo } = useGrowth();
   const [profile, setProfile] = useState(false);
   const path = usePathname();
 
@@ -474,6 +474,11 @@ export default function Shell({ children }) {
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-info/20 bg-infosoft/90 px-4 py-3 text-xs text-text2" role="status">
               <span className="flex items-center gap-2"><CloudOff size={15} className="text-info" /><strong className="text-ink">离线演示</strong> 所有核心流程可用，数据只保存在当前浏览器。</span>
               <button onClick={resetDemoData} className="flex items-center gap-1.5 font-semibold text-info hover:text-ink"><RotateCcw size={13} />恢复初始数据</button>
+            </div>
+          ) : null}
+          {!isDemo && serviceInfo?.ai_mode === "mock" ? (
+            <div className="mb-5 rounded-[14px] border border-warn/20 bg-warnsoft px-4 py-3 text-xs leading-5 text-text2" role="status">
+              <strong className="text-ink">当前使用演示 AI。</strong> 核心流程可用，但建议部署前配置模型 API Key，以获得针对真实目标的规划。
             </div>
           ) : null}
           {dataError ? <div role="alert" className="mb-5 rounded-[14px] border border-danger/20 bg-dangersoft px-4 py-3 text-sm text-danger">{dataError}</div> : null}

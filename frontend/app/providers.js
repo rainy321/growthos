@@ -15,6 +15,7 @@ export function GrowthProvider({ children }) {
   const [tasks, setTasks] = useState([]);
   const [dataStatus, setDataStatus] = useState("idle");
   const [dataError, setDataError] = useState("");
+  const [serviceInfo, setServiceInfo] = useState(null);
 
   const [compOpen, setCompOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -62,6 +63,7 @@ export function GrowthProvider({ children }) {
 
   useEffect(() => {
     if (!uid) return;
+    api.health().then(setServiceInfo).catch(() => setServiceInfo(null));
     api.checkDue(uid, simDate)
       .then((result) => {
         if (result?.newly_completed?.length) setNewlyCompleted(result.newly_completed);
@@ -115,6 +117,7 @@ export function GrowthProvider({ children }) {
     setTasks([]);
     setDataError("");
     setDataStatus("idle");
+    setServiceInfo(null);
     setCompOpen(false);
     setMessages([]);
   }
@@ -155,6 +158,7 @@ export function GrowthProvider({ children }) {
     me, uid, tone, dayN, simDate, isDemo,
     dash, mem, tasks, setTasks, loadAll, refreshDash,
     dataStatus, dataError,
+    serviceInfo,
     login, logout, updateMe, startDemo, resetDemoData, fastForward,
     compOpen, messages, toggleCompanion, sendCompanion,
     newlyCompleted, clearCelebration: () => setNewlyCompleted([]),
