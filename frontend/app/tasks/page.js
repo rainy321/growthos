@@ -51,7 +51,10 @@ export default function TasksPage() {
   const [toast, setToast] = useState("");
   const [viewDate, setViewDate] = useState(simDate);
   const [myGoals, setMyGoals] = useState([]);
-  useEffect(() => setViewDate(simDate), [simDate]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setViewDate(simDate), 0);
+    return () => window.clearTimeout(timer);
+  }, [simDate]);
   const isToday = viewDate === simDate;
 
   // 自动读取用户的所有目标:既让「生成今日任务」可用,也填到「我的目标」池子

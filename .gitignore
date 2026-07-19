@@ -18,6 +18,7 @@ node_modules/
 
 # build artifacts / handoff
 growth_os_handoff.zip
+screenshots/
 
 # local planning notes
 docs/*任务说明书.md

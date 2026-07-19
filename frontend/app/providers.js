@@ -63,13 +63,16 @@ export function GrowthProvider({ children }) {
 
   useEffect(() => {
     if (!uid) return;
-    api.health().then(setServiceInfo).catch(() => setServiceInfo(null));
-    api.checkDue(uid, simDate)
-      .then((result) => {
-        if (result?.newly_completed?.length) setNewlyCompleted(result.newly_completed);
-      })
-      .catch(() => {});
-    loadAll(uid).catch(() => {});
+    const timer = window.setTimeout(() => {
+      api.health().then(setServiceInfo).catch(() => setServiceInfo(null));
+      api.checkDue(uid, simDate)
+        .then((result) => {
+          if (result?.newly_completed?.length) setNewlyCompleted(result.newly_completed);
+        })
+        .catch(() => {});
+      loadAll(uid).catch(() => {});
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [uid, simDate, loadAll]);
 
   const refreshDash = useCallback(async () => {
