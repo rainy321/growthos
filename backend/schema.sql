@@ -44,3 +44,12 @@ CREATE TABLE IF NOT EXISTS memory (
     insight_type TEXT,
     content      TEXT
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_name_nocase
+    ON user(name COLLATE NOCASE);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_behavior_log_task
+    ON behavior_log(task_id);
+CREATE INDEX IF NOT EXISTS idx_goal_user_status
+    ON goal(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_task_goal_date
+    ON task(goal_id, date);

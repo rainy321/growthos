@@ -3,8 +3,18 @@ import { GrowthProvider } from "./providers";
 import Shell from "./shell";
 
 export const metadata = {
-  title: "Growth OS · 长期成长操作系统",
-  description: "把人生目标拆解为每日动作 + AI 反馈闭环",
+  title: {
+    default: "Growth OS · 让长期目标持续抵达",
+    template: "%s · Growth OS",
+  },
+  description: "把长期目标变成今天能完成的动作，并根据真实执行持续重新规划。",
+  applicationName: "Growth OS",
+  keywords: ["目标管理", "AI 规划", "习惯养成", "成长复盘"],
+};
+
+export const viewport = {
+  themeColor: "#17343a",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }) {

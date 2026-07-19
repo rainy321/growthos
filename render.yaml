@@ -19,3 +19,11 @@ services:
         value: glm-4-flash
       - key: AI_MOCK
         value: "0"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ENVIRONMENT
+        value: production
+      - key: CORS_ORIGINS       # 直连后端时填写前端域名；Netlify 同源代理可保留默认
+        sync: false
+      - key: SEED_DEMO_DATA
+        value: "0"

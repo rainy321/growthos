@@ -24,17 +24,10 @@ import {
 } from "lucide-react";
 import { useGrowth } from "./providers";
 import { api } from "@/lib/api";
-import { Bar, BotanicalAccent, Card, EmptyState, PageHeader, SectionTitle, Stat, Tag } from "./ui";
+import { Bar, BotanicalAccent, Card, EmptyState, PageHeader, RouteRibbon, SectionTitle, Stat, Tag } from "./ui";
 
 const pct = (n) => Math.round((n || 0) * 100);
-const TIMELINE = [
-  ["设定", "目标与基础状态"],
-  ["拆解", "阶段与能力"],
-  ["今日", "可执行动作"],
-  ["记录", "质量与阻碍"],
-  ["复盘", "偏差洞察"],
-  ["调整", "新计划写回"],
-];
+const ROUTE_STEPS = ["目标", "拆解", "今日行动", "行为信号", "复盘", "重规划"];
 
 export default function Overview() {
   const { me, dash, mem, tasks, simDate, dayN, tone } = useGrowth();
@@ -58,34 +51,34 @@ export default function Overview() {
   return (
     <>
       <PageHeader
-        kicker="Forest dashboard"
-        title={`${me?.name || ""} 的森林书房`}
-        desc={`第 ${dayN} 天 · ${simDate} · ${tone}。把长期成长放进一个安静、温暖、可执行的个人仪表盘。`}
+        kicker="Adaptive route · live"
+        title={`${me?.name || "成长者"}，今天只需要抵达下一个航点`}
+        desc={`第 ${dayN} 天 · ${simDate} · ${tone}。Growth OS 会根据真实执行信号持续重规划，而不是让过期计划追着你跑。`}
         right={
-          <Link href="/tasks" className="inline-flex items-center justify-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(127,163,107,0.25)] transition hover:bg-[#72965e]">
-            进入今日任务
+          <Link href="/tasks" className="inline-flex items-center justify-center gap-1.5 rounded-[10px] bg-signal px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(239,106,91,0.22)] transition hover:bg-[#dd5c50]">
+            查看下一航点
             <ArrowRight size={16} />
           </Link>
         }
       />
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card tone="soft" className="relative min-h-[310px] overflow-hidden">
-          <BotanicalAccent className="absolute -right-10 -top-9 h-40 w-48 opacity-60" />
+        <Card tone="soft" className="route-grid relative min-h-[310px] overflow-hidden">
+          <BotanicalAccent className="absolute -right-8 -top-4 h-40 w-48 opacity-55" />
           <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_180px] lg:items-center">
             <div>
               <div className="mb-5 flex flex-wrap gap-2">
-                <Tag tone="accent">森林书房模式</Tag>
+                <Tag tone="signal">实时航线</Tag>
                 <Tag tone="neutral">{tone}</Tag>
                 <Tag tone={pendingToday ? "warn" : "accent"}>{pendingToday ? `${pendingToday} 个动作待完成` : "今日已安定"}</Tag>
               </div>
 
               <div className="flex items-center gap-3">
-                <span className="flex h-14 w-14 items-center justify-center rounded-lg bg-[#e8efdc] text-accent shadow-[var(--shadow-pressed)]">
+                <span className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-accent text-white shadow-[var(--shadow-pressed)]">
                   <UserRound size={24} />
                 </span>
                 <div>
-                  <div className="text-3xl font-bold leading-tight tracking-tight text-ink">{me?.name || "成长者"}</div>
+                  <div className="display-type text-3xl leading-tight text-ink">{me?.name || "成长者"}</div>
                   <div className="mt-1 flex items-center gap-2 text-sm text-text2">
                     <CalendarDays size={15} className="text-accent" />
                     {simDate}
@@ -94,7 +87,7 @@ export default function Overview() {
               </div>
 
               <p className="mt-6 max-w-2xl text-sm leading-7 text-text2">
-                {quietHint} 系统会把真实完成情况、疲惫原因和节奏变化沉淀成记忆,再反过来调整后面的计划。
+                {quietHint} 完成质量、疲惫原因与时段变化都会成为导航信号，系统据此调整后面的路线。
               </p>
 
               <div className="mt-6 grid grid-cols-3 gap-3">
@@ -112,10 +105,10 @@ export default function Overview() {
               </div>
             </div>
 
-            <div className="mx-auto flex h-44 w-44 items-center justify-center rounded-full p-2" style={{ background: `conic-gradient(#7fa36b ${pct(completion)}%, #e8ddc8 0)` }}>
+            <div className="mx-auto flex h-44 w-44 items-center justify-center rounded-full p-2" style={{ background: `conic-gradient(#2f7d78 ${pct(completion)}%, #d4e1df 0)` }}>
               <div className="flex h-full w-full flex-col items-center justify-center rounded-full border border-white/70 bg-card/85 shadow-[var(--shadow-pressed)]">
-                <span className="text-4xl font-bold tracking-tight text-ink">{pct(completion)}%</span>
-                <span className="mt-1 text-xs font-semibold text-muted">总完成率</span>
+                <span className="data-type text-4xl font-bold tracking-tight text-ink">{pct(completion)}%</span>
+                <span className="mt-1 text-xs font-semibold text-muted">航线完成度</span>
               </div>
             </div>
           </div>
@@ -123,26 +116,26 @@ export default function Overview() {
 
         <Card tone="accent" className="relative overflow-hidden">
           <Leaf size={86} className="absolute -right-4 -top-5 text-accent/10" />
-          <SectionTitle icon={Brain} title="AI 助手" desc="把行为里的信号翻译成更温柔的下一步。" />
+          <SectionTitle icon={Brain} title="重规划建议" desc="把行为信号翻译成更现实的下一步。" />
           <div className="rounded-lg border border-accent/15 bg-card/65 p-4">
             <div className="flex items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accentsoft text-accent">
                 <MessageCircle size={18} />
               </span>
               <div>
-                <div className="text-sm font-bold text-ink">今天的建议</div>
+                <div className="text-sm font-bold text-ink">系统判断</div>
                 <p className="mt-1 text-sm leading-6 text-text2">
-                  {pendingToday ? "先完成一个低难度动作,保留连续性比硬撑更重要。" : "状态不错,可以保存一次洞察,让系统更懂你的节奏。"}
+                  {pendingToday ? "先抵达一个低难度航点。保持路线连续，比一次性冲刺更重要。" : "今日航线已收束，适合保存一次洞察，让下次规划更贴近你的节奏。"}
                 </p>
               </div>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-3">
             <Link href="/review" className="rounded-lg border border-line/70 bg-card/55 px-4 py-3 text-sm font-semibold text-ink transition hover:border-accent/35 hover:text-accent">
-              去复盘
+              查看偏航分析
             </Link>
             <Link href="/tasks" className="rounded-lg border border-line/70 bg-card/55 px-4 py-3 text-sm font-semibold text-ink transition hover:border-accent/35 hover:text-accent">
-              去执行
+              继续执行
             </Link>
           </div>
         </Card>
@@ -158,15 +151,15 @@ export default function Overview() {
       <Link href="/achievements" className="mt-5 flex items-center gap-4 rounded-lg border border-warn/25 bg-warnsoft p-5 shadow-[var(--shadow-card)] transition hover:border-warn/45">
         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-warn text-white shadow-[var(--shadow-pressed)]"><Trophy size={22} /></span>
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-bold text-ink">成就墙 · 已完成 {doneCount} 个目标</div>
-          <div className="text-xs leading-5 text-text2">每一个完成的目标都收在这里,点开看看你的成长里程碑</div>
+          <div className="text-sm font-bold text-ink">抵达记录 · 已完成 {doneCount} 个长期目标</div>
+          <div className="text-xs leading-5 text-text2">完成不是一次打卡，而是一条真实走完的路线。</div>
         </div>
         <ArrowRight size={18} className="shrink-0 text-warn" />
       </Link>
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <Card>
-          <SectionTitle icon={ListChecks} title="今日清单" desc="保留轻盈明确的下一步。" />
+          <SectionTitle icon={ListChecks} title="下一航点" desc="只显示今天真正需要推进的动作。" />
           <div className="space-y-0">
             {todays.slice(0, 5).map((t) => {
               const settled = t.status === "completed" || t.status === "skipped";
@@ -189,22 +182,15 @@ export default function Overview() {
         </Card>
 
         <Card tone="soft">
-          <SectionTitle icon={Sprout} title="成长时间轴" desc="从目标到记忆,每一步都慢慢落地。" />
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
-            {TIMELINE.map(([title, desc], i) => (
-              <div key={title} className="relative rounded-lg border border-line/70 bg-card/55 px-3 py-3">
-                <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-full bg-accentsoft text-xs font-bold text-accent">{i + 1}</div>
-                <div className="text-sm font-bold text-ink">{title}</div>
-                <div className="mt-1 text-xs leading-5 text-muted">{desc}</div>
-              </div>
-            ))}
-          </div>
+          <SectionTitle icon={Sprout} title="自适应成长航线" desc="偏航不是失败，而是下一次重规划所需的信号。" />
+          <RouteRibbon steps={ROUTE_STEPS} active={pendingToday ? 2 : 3} />
+          <p className="mt-4 text-xs leading-6 text-text2">目标决定方向，今天的行为决定路线。每次记录都会让计划从“理论上正确”变得“对你有效”。</p>
         </Card>
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[1fr_0.9fr]">
         <Card>
-          <SectionTitle icon={TrendingUp} title="维度进度" desc="用柔和的进度条观察执行稳定度。" />
+          <SectionTitle icon={TrendingUp} title="各航线稳定度" desc="观察不同生活维度的真实执行，而不是只看总分。" />
           <div className="space-y-4">
             {categories.map((c) => <Bar key={c.category} label={c.category} rate={c.rate} />)}
             {!categories.length ? <EmptyState icon={Leaf} title="暂无维度数据" desc="先创建目标并完成一次打卡,进度会自动出现在这里。" /> : null}
@@ -213,7 +199,7 @@ export default function Overview() {
 
         <Card className="relative overflow-hidden">
           <BotanicalAccent className="absolute -bottom-12 -right-12 h-40 w-48 rotate-[-18deg] opacity-35" />
-          <SectionTitle icon={Sparkles} title="系统记忆" desc="从行为里沉淀出的长期节奏。" />
+          <SectionTitle icon={Sparkles} title="导航记忆" desc="系统从长期行为里学到的个人规律。" />
           <div className="relative z-10 space-y-3">
             {(mem || []).slice(0, 4).map((m) => (
               <div key={m.id} className="border-t border-line/75 pt-3 first:border-t-0 first:pt-0">

@@ -12,7 +12,6 @@ import {
   RefreshCw,
   Route,
   Sparkles,
-  Sprout,
   Target,
   Trash2,
   XCircle,
@@ -40,6 +39,7 @@ export default function TasksPage() {
   const [createdGoalId, setCreatedGoalId] = useState("");
   const [busy, setBusy] = useState(false);
   const [planning, setPlanning] = useState(false);
+  const [checkingId, setCheckingId] = useState("");
 
   const [editId, setEditId] = useState("");
   const [editContent, setEditContent] = useState("");
@@ -59,9 +59,9 @@ export default function TasksPage() {
     if (!uid) return;
     api.goals(uid).then((gs) => {
       setMyGoals(gs || []);
-      if (!createdGoalId && gs && gs[0]) setCreatedGoalId(gs[0].id);
+      setCreatedGoalId((current) => current || gs?.find((item) => item.status !== "done")?.id || "");
     }).catch(() => {});
-  }, [uid, simDate]);
+  }, [uid]);
 
   const todays = tasks.filter((t) => t.date === viewDate);
   const doneToday = todays.filter((t) => t.status === "completed").length;
@@ -69,6 +69,9 @@ export default function TasksPage() {
   const todayRate = todays.length ? doneToday / todays.length : 0;
 
   async function onCheckin(t, p) {
+    if (checkingId) return;
+    setCheckingId(t.id);
+    setErr("");
     try {
       await api.checkin(t.id, { done: p.done, quality: p.quality, notes: p.note });
       setTasks((prev) => prev.map((x) => (x.id === t.id ? { ...x, status: p.done ? "completed" : "skipped" } : x)));
@@ -77,10 +80,13 @@ export default function TasksPage() {
       setTimeout(() => setToast(""), 4000);
     } catch (e) {
       setErr(String(e.message || e));
+    } finally {
+      setCheckingId("");
     }
   }
 
   async function onDeleteTask(t) {
+    if (!window.confirm(`删除任务“${t.content}”？相关打卡记录也会删除。`)) return;
     try {
       await api.deleteTask(t.id);
       await loadAll(uid);
@@ -96,8 +102,12 @@ export default function TasksPage() {
   }
 
   async function onSaveEdit() {
+    if (!editContent.trim()) {
+      setErr("任务内容不能为空");
+      return;
+    }
     try {
-      await api.updateTask(editId, { content: editContent, difficulty: editDiff });
+      await api.updateTask(editId, { content: editContent.trim(), difficulty: editDiff });
       setEditId("");
       await loadAll(uid);
     } catch (e) {
@@ -117,7 +127,7 @@ export default function TasksPage() {
         setErr("先创建一个目标,再添加任务");
         return;
       }
-      await api.addTask({ goal_id: gid, date: simDate, content: newContent.trim(), difficulty: newDiff });
+      await api.addTask({ goal_id: gid, date: viewDate, content: newContent.trim(), difficulty: newDiff });
       setNewContent("");
       await loadAll(uid);
     } catch (e) {
@@ -129,7 +139,7 @@ export default function TasksPage() {
     setPlanning(true);
     try {
       const gs = (await api.goals(uid)).filter((g) => g.status !== "done");
-      for (const g of gs) await api.planToday(g.id, simDate);
+      await Promise.all(gs.map((item) => api.planToday(item.id, viewDate)));
       await loadAll(uid);
     } catch (e) {
       setErr(String(e.message || e));
@@ -138,6 +148,10 @@ export default function TasksPage() {
   }
 
   async function onDecompose() {
+    if (goal.trim().length < 2) {
+      setErr("请先写下一个明确的长期目标");
+      return;
+    }
     setBusy(true);
     setErr("");
     setDecomp(null);
@@ -154,6 +168,8 @@ export default function TasksPage() {
   }
 
   async function onDeleteGoal(gid) {
+    const target = myGoals.find((item) => item.id === gid);
+    if (!window.confirm(`删除目标“${target?.title || gid}”？它的任务与记录也会删除。`)) return;
     try {
       await api.deleteGoal(gid);
       const gs = await api.goals(uid);
@@ -165,6 +181,8 @@ export default function TasksPage() {
   }
 
   async function onCompleteGoal(gid) {
+    const target = myGoals.find((item) => item.id === gid);
+    if (!window.confirm(`确认“${target?.title || gid}”已经完成？它会移入抵达记录。`)) return;
     try {
       await api.completeGoal(gid);
       const gs = await api.goals(uid);
@@ -181,7 +199,7 @@ export default function TasksPage() {
     try {
       // 只给进行中的目标生成(已完成的目标不再生成)
       const gs = (await api.goals(uid)).filter((g) => g.status !== "done");
-      for (const g of gs) await api.planToday(g.id, simDate);
+      await Promise.all(gs.map((item) => api.planToday(item.id, simDate)));
       await loadAll(uid);
     } catch (e) {
       setErr(String(e.message || e));
@@ -192,9 +210,9 @@ export default function TasksPage() {
   return (
     <>
       <PageHeader
-        kicker="Daily execution"
-        title="今日任务"
-        desc={`第 ${dayN} 天 · ${simDate}。先执行,再记录真实阻碍,后面 AI 才能调得准。`}
+        kicker="Route execution"
+        title="今天要抵达的航点"
+        desc={`第 ${dayN} 天 · ${simDate}。先行动，再如实记录阻力；真实信号比漂亮计划更有价值。`}
         right={
           <Btn variant="outline" onClick={fastForward}>
             <CalendarClock size={15} />
@@ -203,8 +221,8 @@ export default function TasksPage() {
         }
       />
 
-      {toast ? <div className="mb-4 rounded-md border border-accent/20 bg-accentsoft px-4 py-2.5 text-sm font-semibold text-ink">{toast}</div> : null}
-      {err ? <div className="mb-4 rounded-md border border-danger/20 bg-dangersoft px-4 py-2.5 text-sm font-semibold text-danger">{err}</div> : null}
+      {toast ? <div role="status" aria-live="polite" className="mb-4 rounded-[12px] border border-accent/20 bg-accentsoft px-4 py-2.5 text-sm font-semibold text-ink">{toast}</div> : null}
+      {err ? <div role="alert" className="mb-4 rounded-[12px] border border-danger/20 bg-dangersoft px-4 py-2.5 text-sm font-semibold text-danger">{err}</div> : null}
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.25fr_0.85fr]">
         <div className="space-y-5">
@@ -212,8 +230,8 @@ export default function TasksPage() {
             <BotanicalAccent className="absolute -right-16 -top-14 h-44 w-52 opacity-20" />
             <SectionTitle
               icon={Route}
-              title="今日执行栈"
-              desc="每条任务都可以一键记录状态,系统会把完成质量和原因带入复盘。"
+              title="当前航线"
+              desc="每次完成或跳过都会变成重规划信号，而不是简单的对错记录。"
               right={createdGoalId ? (
                 <Btn variant="ghost" size="sm" onClick={onRegenerate} disabled={planning}>
                   <RefreshCw size={14} />
@@ -279,6 +297,7 @@ export default function TasksPage() {
                                 <button
                                   key={p.label}
                                   onClick={() => onCheckin(t, p)}
+                                  disabled={Boolean(checkingId)}
                                   className={`rounded-md px-2.5 py-1.5 text-xs font-semibold text-white transition hover:opacity-90 ${p.cls}`}
                                 >
                                   {p.label}
@@ -303,22 +322,22 @@ export default function TasksPage() {
             {!todays.length ? (
               <EmptyState
                 icon={Clock3}
-                title="这一天还没有任务"
-                desc="先在右侧创建目标并生成今日任务,也可以在下方手动补充。"
+                title="这一天还没有航点"
+                desc="先创建一个长期方向并生成行动，也可以在下方手动添加。"
               />
             ) : null}
 
             <div className="mt-5 border-t border-line pt-4">
               <div className="mb-3 flex items-center gap-2 text-sm font-bold text-ink">
                 <Plus size={16} className="text-accent" />
-                手动补充任务
+                手动补充航点
               </div>
               <div className="grid gap-2 md:grid-cols-[1fr_92px_auto]">
                 <input
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && onAddTask()}
-                  placeholder="加一个今天确实要做的动作"
+                  placeholder={`加一个 ${viewDate} 确实要做的动作`}
                   className="min-w-0 rounded-md border border-line bg-paper px-3 py-2.5 text-sm outline-none transition focus:border-accent/50 focus:bg-card"
                 />
                 <select value={newDiff} onChange={(e) => setNewDiff(e.target.value)} className="rounded-md border border-line bg-paper px-3 py-2.5 text-sm">
@@ -338,7 +357,7 @@ export default function TasksPage() {
         <div className="space-y-5">
           <Card tone="accent" className="relative overflow-hidden">
             <BotanicalAccent className="absolute -bottom-12 -right-14 h-44 w-52 rotate-[-18deg] opacity-30" />
-            <SectionTitle icon={Target} title="目标拆解" desc="输入长期目标,让 AI 拆出阶段与今天可执行的动作。" />
+            <SectionTitle icon={Target} title="设定长期方向" desc="先明确方向和现实周期，再让系统拆成可验证的阶段。" />
 
             <div className="space-y-3">
               <label className="block">
@@ -364,11 +383,11 @@ export default function TasksPage() {
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               <Btn onClick={onDecompose} disabled={busy}>
                 <Sparkles size={15} />
-                {busy ? "拆解中..." : "创建并拆解"}
+                {busy ? "正在绘制路线..." : "创建成长路线"}
               </Btn>
               <Btn variant="outline" onClick={onPlan} disabled={planning || !createdGoalId}>
                 <ArrowRight size={15} />
-                {planning ? "生成中..." : "生成今日任务"}
+                {planning ? "正在规划..." : "生成今日航点"}
               </Btn>
             </div>
 
@@ -396,17 +415,17 @@ export default function TasksPage() {
               </div>
             ) : (
               <div className="mt-5 rounded-md border border-dashed border-accent/30 bg-card/70 px-4 py-4 text-xs leading-6 text-text2">
-                拆解结果会在这里显示。先看阶段,再生成今天的动作。
+                路线拆解会显示在这里。先确认阶段，再生成今天的行动。
               </div>
             )}
           </Card>
 
           <Card tone="soft">
-            <SectionTitle icon={Sparkles} title="小贴士" />
+            <SectionTitle icon={Sparkles} title="使用原则" />
             <div className="space-y-2 text-xs leading-6 text-text2">
-              <div>· 每条任务可一键记录状态,也能编辑、删除或自己添加。</div>
-              <div>· 不满意当天的安排?点「换一批」重新生成。</div>
-              <div>· 打卡信息会进入「AI 复盘」,帮你发现规律。</div>
+              <div>· 记录真实状态，不要为了完成率把困难藏起来。</div>
+              <div>· 安排不现实时，使用「换一批」让系统重新导航。</div>
+              <div>· 连续几天的信号会进入复盘，逐渐形成个人策略。</div>
             </div>
           </Card>
         </div>
@@ -417,7 +436,7 @@ export default function TasksPage() {
         if (!active.length) return null;
         return (
           <Card className="mt-5">
-            <SectionTitle icon={Target} title="我的目标" desc="每日任务从这里生成;完成了点✓移入成就,不需要的点删除。" />
+            <SectionTitle icon={Target} title="我的成长航线" desc="每日行动从这里生成；抵达后移入记录，不再继续排任务。" />
             <ul className="grid gap-2 sm:grid-cols-2">
               {active.map((g) => {
                 let d = null;

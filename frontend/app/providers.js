@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { addDay, dayDiff, isoToday, companionGreeting, companionReply } from "./shared";
+import { addDay, companionGreeting, companionReply, dayDiff, isoToday } from "./shared";
 
 const GrowthCtx = createContext(null);
 export const useGrowth = () => useContext(GrowthCtx);
@@ -13,8 +13,9 @@ export function GrowthProvider({ children }) {
   const [dash, setDash] = useState(null);
   const [mem, setMem] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [dataStatus, setDataStatus] = useState("idle");
+  const [dataError, setDataError] = useState("");
 
-  // 陪伴小人
   const [compOpen, setCompOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [newlyCompleted, setNewlyCompleted] = useState([]);
@@ -22,79 +23,140 @@ export function GrowthProvider({ children }) {
   const uid = me?.id || "";
   const tone = me?.tone || "温暖朋友";
   const dayN = dayDiff(isoToday(), simDate) + 1;
+  const isDemo = api.isDemo();
 
-  // 挂载后读登录态(SSR 安全)
   useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
-        const s = localStorage.getItem("gos_me");
-        if (s) setMe(JSON.parse(s));
-        const sd = localStorage.getItem("gos_sim");
-        if (sd) setSimDate(sd);
-      } catch (e) {}
+        const saved = window.localStorage.getItem("gos_me");
+        const savedDate = window.localStorage.getItem("gos_sim");
+        if (saved) setMe(JSON.parse(saved));
+        if (savedDate) setSimDate(savedDate);
+      } catch (_) {
+        window.localStorage.removeItem("gos_me");
+      }
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
 
-  const loadAll = useCallback((id) => {
+  const loadAll = useCallback(async (id) => {
     if (!id) return;
-    return Promise.all([api.dashboard(id), api.memory(id), api.tasks(id)])
-      .then(([d, m, t]) => { setDash(d); setMem(m); setTasks(t); })
-      .catch(() => {});
+    setDataStatus("loading");
+    setDataError("");
+    try {
+      const [dashboard, memory, allTasks] = await Promise.all([
+        api.dashboard(id),
+        api.memory(id),
+        api.tasks(id),
+      ]);
+      setDash(dashboard);
+      setMem(memory || []);
+      setTasks(allTasks || []);
+      setDataStatus("ready");
+    } catch (error) {
+      setDataStatus("error");
+      setDataError(String(error?.message || error));
+      throw error;
+    }
   }, []);
 
-  // 进入或快进到新一天 → 检查到期目标自动完成(刚完成的用于弹窗)+ 刷新数据
   useEffect(() => {
     if (!uid) return;
     api.checkDue(uid, simDate)
-      .then((r) => { if (r && r.newly_completed && r.newly_completed.length) setNewlyCompleted(r.newly_completed); })
+      .then((result) => {
+        if (result?.newly_completed?.length) setNewlyCompleted(result.newly_completed);
+      })
       .catch(() => {});
-    loadAll(uid);
+    loadAll(uid).catch(() => {});
   }, [uid, simDate, loadAll]);
 
-  function clearCelebration() { setNewlyCompleted([]); }
+  const refreshDash = useCallback(async () => {
+    if (!uid) return null;
+    const result = await api.dashboard(uid);
+    setDash(result);
+    return result;
+  }, [uid]);
 
-  useEffect(() => { if (uid) loadAll(uid); }, [uid, loadAll]);
+  function login(result) {
+    const user = result?.user || result;
+    const sessionToken = result?.token || user?.token;
+    if (!user?.id) throw new Error("登录响应缺少用户信息");
+    const cleanUser = { ...user };
+    delete cleanUser.token;
+    if (sessionToken) window.localStorage.setItem("growthos_token", sessionToken);
+    window.localStorage.setItem("gos_me", JSON.stringify(cleanUser));
+    setMe(cleanUser);
+  }
 
-  const refreshDash = useCallback(() => uid ? api.dashboard(uid).then(setDash).catch(() => {}) : null, [uid]);
+  function startDemo() {
+    const user = api.startDemo();
+    setSimDate(isoToday());
+    window.localStorage.setItem("gos_sim", isoToday());
+    login(user);
+  }
 
-  function login(u) { localStorage.setItem("gos_me", JSON.stringify(u)); setMe(u); }
-  function logout() { localStorage.removeItem("gos_me"); setMe(null); setCompOpen(false); setMessages([]); }
-  function updateMe(u) { localStorage.setItem("gos_me", JSON.stringify(u)); setMe(u); }
+  function resetDemoData() {
+    const user = api.resetDemo();
+    setSimDate(isoToday());
+    window.localStorage.setItem("gos_sim", isoToday());
+    login(user);
+    loadAll(user.id).catch(() => {});
+  }
+
+  function logout() {
+    api.stopDemo();
+    window.localStorage.removeItem("gos_me");
+    window.localStorage.removeItem("growthos_token");
+    window.localStorage.removeItem("gos_sim");
+    setMe(null);
+    setDash(null);
+    setMem([]);
+    setTasks([]);
+    setDataError("");
+    setDataStatus("idle");
+    setCompOpen(false);
+    setMessages([]);
+  }
+
+  function updateMe(user) {
+    window.localStorage.setItem("gos_me", JSON.stringify(user));
+    setMe(user);
+  }
 
   function fastForward() {
-    setSimDate((d) => {
-      const nd = addDay(d, 1);
-      localStorage.setItem("gos_sim", nd);
-      return nd;
+    setSimDate((current) => {
+      const next = addDay(current, 1);
+      window.localStorage.setItem("gos_sim", next);
+      return next;
     });
   }
 
-  // 陪伴对话
   function toggleCompanion() {
-    setCompOpen((o) => {
-      const no = !o;
-      if (no && messages.length === 0) {
+    setCompOpen((open) => {
+      const next = !open;
+      if (next && messages.length === 0) {
         setMessages([{ role: "bot", text: companionGreeting(tone, me?.name || "", dayN) }]);
       }
-      return no;
+      return next;
     });
   }
+
   function sendCompanion(text) {
-    const t = (text || "").trim();
-    if (!t) return;
-    setMessages((m) => [...m, { role: "user", text: t }]);
-    setTimeout(() => {
-      setMessages((m) => [...m, { role: "bot", text: companionReply(t, tone, dash) }]);
+    const value = (text || "").trim();
+    if (!value) return;
+    setMessages((items) => [...items, { role: "user", text: value }]);
+    window.setTimeout(() => {
+      setMessages((items) => [...items, { role: "bot", text: companionReply(value, tone, dash) }]);
     }, 350);
   }
 
   const value = {
-    me, uid, tone, dayN, simDate,
+    me, uid, tone, dayN, simDate, isDemo,
     dash, mem, tasks, setTasks, loadAll, refreshDash,
-    login, logout, updateMe, fastForward,
+    dataStatus, dataError,
+    login, logout, updateMe, startDemo, resetDemoData, fastForward,
     compOpen, messages, toggleCompanion, sendCompanion,
-    newlyCompleted, clearCelebration,
+    newlyCompleted, clearCelebration: () => setNewlyCompleted([]),
   };
 
   return <GrowthCtx.Provider value={value}>{children}</GrowthCtx.Provider>;

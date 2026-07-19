@@ -51,8 +51,9 @@ export default function ReviewPage() {
       setAnalMeta({ rate: r.completion_rate_7d, logs_count: r.logs_count });
     } catch (e) {
       setErr(String(e.message || e));
+    } finally {
+      setAnalyzing(false);
     }
-    setAnalyzing(false);
   }
 
   async function onAdjust() {
@@ -64,8 +65,9 @@ export default function ReviewPage() {
       setAdjustments(r.adjustments || null);
     } catch (e) {
       setErr(String(e.message || e));
+    } finally {
+      setAdjusting(false);
     }
-    setAdjusting(false);
   }
 
   async function onSave() {
@@ -83,12 +85,12 @@ export default function ReviewPage() {
   return (
     <>
       <PageHeader
-        kicker="AI review loop"
-        title="AI 复盘 & 动态调整"
-        desc={`当前日期 ${simDate} · 语气 ${tone}。这里读取近 7 天行为,把真实阻碍转成新的计划策略。`}
+        kicker="Reroute intelligence"
+        title="看见偏航，然后重新导航"
+        desc={`当前日期 ${simDate} · ${tone}。系统读取近 7 天的完成质量与阻力，把“为什么没做到”转成下一段更现实的路线。`}
       />
 
-      {err ? <div className="mb-4 rounded-md border border-danger/20 bg-dangersoft px-4 py-2.5 text-sm font-semibold text-danger">{err}</div> : null}
+      {err ? <div role="alert" className="mb-4 rounded-[12px] border border-danger/20 bg-dangersoft px-4 py-2.5 text-sm font-semibold text-danger">{err}</div> : null}
 
       <Card tone="info" className="relative mb-5 overflow-hidden">
         <BotanicalAccent className="absolute -bottom-14 -right-12 h-44 w-52 rotate-[-16deg] opacity-25" />
@@ -96,15 +98,15 @@ export default function ReviewPage() {
           <div>
             <div className="flex items-center gap-2 text-sm font-bold text-ink">
               <Brain size={17} className="text-info" />
-              复盘闭环
+              重规划闭环
             </div>
-            <p className="mt-1 text-xs leading-5 text-text2">行为数据先变成洞察,洞察再变成调整建议,最后写回长期记忆。</p>
+            <p className="mt-1 text-xs leading-5 text-text2">行为信号先形成洞察，再生成路线调整，最后写回个人导航记忆。</p>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center text-xs font-semibold">
             {[
-              ["1", "分析"],
-              ["2", "调整"],
-              ["3", "记忆"],
+              ["1", "识别偏航"],
+              ["2", "重新导航"],
+              ["3", "记住规律"],
             ].map(([n, label]) => (
               <div key={label} className="rounded-md bg-card px-4 py-2 text-ink">
                 <div className="text-accent">{n}</div>
@@ -120,12 +122,12 @@ export default function ReviewPage() {
           <BotanicalAccent className="absolute -right-16 -top-14 h-44 w-52 opacity-20" />
           <SectionTitle
             icon={Sparkles}
-            title="行为复盘"
-            desc="分析近 7 天完成率、质量和记录原因。"
+            title="识别行为信号"
+            desc="分析近 7 天完成率、质量、时段和未完成原因。"
             right={
               <Btn onClick={onAnalyze} disabled={analyzing}>
                 <TrendingUp size={15} />
-                {analyzing ? "分析中..." : "分析近 7 天"}
+                {analyzing ? "正在识别..." : "分析近 7 天"}
               </Btn>
             }
           />
@@ -171,14 +173,14 @@ export default function ReviewPage() {
           <BotanicalAccent className="absolute -bottom-14 -right-14 h-44 w-52 rotate-[-18deg] opacity-30" />
           <SectionTitle
             icon={SlidersHorizontal}
-            title="动态调整"
-            desc="根据洞察降低或提高难度,重排任务,给出新的执行策略。"
+            title="生成新路线"
+            desc="根据洞察调整难度、时段和任务边界，给出新的执行策略。"
           />
 
           <div className="mb-5 grid gap-2 sm:grid-cols-2">
             <Btn onClick={onAdjust} disabled={adjusting || !analInsights.length}>
               <ArrowRight size={15} />
-              {adjusting ? "生成中..." : "生成调整建议"}
+              {adjusting ? "正在重规划..." : "生成重规划建议"}
             </Btn>
             <Btn variant="outline" onClick={onSave} disabled={!analInsights.length}>
               <Save size={15} />
@@ -227,8 +229,8 @@ export default function ReviewPage() {
           ) : (
             <EmptyState
               icon={SlidersHorizontal}
-              title="等待调整建议"
-              desc="先生成行为洞察,再让系统把偏差转成下一步计划。"
+              title="等待新的路线"
+              desc="先识别行为信号，再让系统把偏差转成下一步计划。"
             />
           )}
         </Card>

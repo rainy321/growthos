@@ -33,14 +33,14 @@ export default function AchievementsPage() {
   return (
     <>
       <PageHeader
-        kicker="Achievements"
-        title="成就墙"
-        desc={`已点亮 ${earned}/${MILESTONES.length} 个里程碑 · 已完成 ${done.length} 个目标`}
+        kicker="Arrival log"
+        title="你已经抵达的地方"
+        desc={`已点亮 ${earned}/${MILESTONES.length} 个里程碑 · 走完 ${done.length} 条长期航线`}
       />
 
       {/* 行为里程碑(自动点亮) */}
       <Card tone="soft">
-        <div className="mb-4 text-sm font-bold text-ink">成长里程碑 · 自动点亮</div>
+        <div className="mb-4 text-sm font-bold text-ink">沿途里程碑 · 自动点亮</div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {MILESTONES.map((m) => {
             const cur = m.cur(d, done.length, dayN);
@@ -76,7 +76,7 @@ export default function AchievementsPage() {
 
       {/* 已完成的目标 */}
       <div className="mt-5">
-        <div className="mb-3 text-sm font-bold text-ink">已完成的目标</div>
+        <div className="mb-3 text-sm font-bold text-ink">已抵达的长期目标</div>
         {done.length ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {done.map((g) => {
@@ -96,7 +96,7 @@ export default function AchievementsPage() {
             })}
           </div>
         ) : (
-          <EmptyState icon={Trophy} title="还没有完成的目标" desc="目标到期会自动完成,或在目标池点 ✓;完成后会出现在这里。" />
+          <EmptyState icon={Trophy} title="还没有抵达记录" desc="完成一条长期航线后，它会和沿途数据一起保存在这里。" />
         )}
       </div>
     </>

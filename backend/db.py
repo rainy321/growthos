@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """SQLite 连接与初始化。schema.sql 是表结构的唯一来源。"""
+import os
 import sqlite3
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parent
-DB_PATH = BASE / "growth_os.db"
+DB_PATH = Path(os.environ.get("DATABASE_PATH", BASE / "growth_os.db")).expanduser().resolve()
 SCHEMA_PATH = BASE / "schema.sql"
 
 # 建表顺序(正向);reset 时反向 DROP 以避开外键依赖
@@ -12,9 +13,12 @@ TABLES = ["user", "goal", "task", "behavior_log", "memory"]
 
 
 def get_conn():
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row          # 按列名取值,像字典
     conn.execute("PRAGMA foreign_keys = ON;")
+    conn.execute("PRAGMA busy_timeout = 5000;")
+    conn.execute("PRAGMA journal_mode = WAL;")
     return conn
 
 

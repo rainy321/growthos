@@ -43,7 +43,7 @@ def create_user(uid, name, baseline):
 def register_user(name, baseline, password):
     """注册:用户名唯一,密码哈希存储。成功返回脱敏用户,重名返回 None。"""
     with get_conn() as c:
-        if c.execute("SELECT 1 FROM user WHERE name=?", (name,)).fetchone():
+        if c.execute("SELECT 1 FROM user WHERE name=? COLLATE NOCASE", (name,)).fetchone():
             return None
     uid = "user_" + uuid4().hex[:8]
     with get_conn() as c:
@@ -57,10 +57,16 @@ def register_user(name, baseline, password):
 
 def login_user(name, password):
     with get_conn() as c:
-        r = c.execute("SELECT * FROM user WHERE name=?", (name,)).fetchone()
+        r = c.execute("SELECT * FROM user WHERE name=? COLLATE NOCASE", (name,)).fetchone()
     if not r or not auth.verify_pw(password, r["password"]):
         return None
-    return _safe(r)
+    user = _safe(r)
+    # Upgrade legacy one-round SHA-256 hashes after a successful sign-in.
+    if not str(r["password"] or "").startswith("pbkdf2_sha256$"):
+        with get_conn() as c:
+            c.execute("UPDATE user SET password=? WHERE id=?", (auth.hash_pw(password), r["id"]))
+            c.commit()
+    return user
 
 
 def ensure_demo_passwords(default="123456"):
@@ -455,6 +461,17 @@ def dashboard(user_id):
 
     all_days = [datetime.strptime(r["date"], "%Y-%m-%d").date()
                 for r in rows if r["date"]]
+    if not all_days:
+        return {
+            "user": user,
+            "completion_rate": round(done / total, 2),
+            "streak": 0,
+            "total": total,
+            "done": done,
+            "avg_quality": avg_q,
+            "categories": categories,
+            "recent_7d": {"rate": 0, "done": 0, "total": 0},
+        }
     maxd = max(all_days)
     lo = maxd - timedelta(days=6)
     rec = [r for r in rows

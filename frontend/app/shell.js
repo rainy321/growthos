@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -8,16 +8,18 @@ import {
   Brain,
   CalendarDays,
   ChevronRight,
+  CloudOff,
   LayoutDashboard,
   Leaf,
   ListChecks,
   LogOut,
   MessageCircle,
+  RotateCcw,
+  Route,
   Send,
   Settings,
   ShieldCheck,
   Sparkles,
-  Sprout,
   Trophy,
   UserRound,
 } from "lucide-react";
@@ -33,7 +35,7 @@ const NAV = [
   { href: "/achievements", label: "成就", icon: Trophy },
 ];
 
-function Field({ label, value, onChange, type = "text", placeholder = "" }) {
+function Field({ label, value, onChange, type = "text", placeholder = "", ...rest }) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-xs font-semibold text-text2">{label}</span>
@@ -42,14 +44,15 @@ function Field({ label, value, onChange, type = "text", placeholder = "" }) {
         onChange={(e) => onChange(e.target.value)}
         type={type}
         placeholder={placeholder}
-        className="w-full rounded-md border border-line/90 bg-card/65 px-3 py-2.5 text-sm text-ink outline-none transition focus:border-accent/50 focus:bg-card"
+        className="w-full rounded-[10px] border border-line/90 bg-card/80 px-3 py-2.5 text-sm text-ink outline-none transition focus:border-accent/50 focus:bg-card"
+        {...rest}
       />
     </label>
   );
 }
 
 function LoginScreen() {
-  const { login } = useGrowth();
+  const { login, startDemo } = useGrowth();
   const [mode, setMode] = useState("login");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -57,8 +60,17 @@ function LoginScreen() {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
-  async function submit() {
+  async function submit(event) {
+    event?.preventDefault();
     setErr("");
+    if (name.trim().length < 2) {
+      setErr("请输入至少 2 个字符的用户名");
+      return;
+    }
+    if (!password || (mode === "register" && password.length < 8)) {
+      setErr(mode === "register" ? "新账号密码至少需要 8 个字符" : "请输入密码");
+      return;
+    }
     setBusy(true);
     try {
       const u = mode === "login"
@@ -67,57 +79,58 @@ function LoginScreen() {
       login(u);
     } catch (e) {
       setErr(String(e.message || e));
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   }
 
   return (
     <main className="min-h-screen px-5 py-8 sm:px-8">
       <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1fr_420px]">
-        <section className="relative hidden overflow-hidden rounded-lg border border-line/80 bg-[rgba(255,250,242,0.72)] p-8 shadow-[var(--shadow-soft)] backdrop-blur-xl lg:block">
-          <BotanicalAccent className="absolute -bottom-10 -right-12 h-48 w-56 rotate-[-12deg] opacity-45" />
+        <section className="route-grid relative hidden overflow-hidden rounded-[24px] border border-accent/15 bg-[rgba(251,253,252,0.88)] p-8 shadow-[var(--shadow-soft)] backdrop-blur-xl lg:block">
+          <BotanicalAccent className="absolute -bottom-8 -right-8 h-52 w-64 opacity-50" />
           <div className="absolute right-8 top-8 flex items-center gap-2 text-accent2/40">
             <Leaf size={26} />
-            <Sprout size={20} />
+            <Route size={20} />
           </div>
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-white">
-              <Sprout size={22} />
+            <span className="flex h-11 w-11 items-center justify-center rounded-[12px] bg-ink text-white">
+              <Route size={22} />
             </span>
             <div>
               <div className="text-xl font-bold tracking-tight text-ink">Growth OS</div>
-              <div className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Life execution loop</div>
+              <div className="data-type text-[10px] font-semibold uppercase tracking-[0.16em] text-accent">Adaptive growth navigation</div>
             </div>
           </div>
 
-          <h1 className="mt-10 max-w-xl text-4xl font-bold leading-tight tracking-tight text-ink">
-            把长期目标变成每天能执行、会被系统修正的成长路径
+          <h1 className="display-type mt-10 max-w-2xl text-[2.65rem] leading-[1.18] text-ink">
+            计划会过期。<br />你的方向不必。
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-text2">
-            目标、计划、行为、复盘、调整、记忆放在同一个工作台里。演示时可以快进几天，让系统看见偏差并自动收缩计划。
+            Growth OS 把长期目标导航成今天的一个航点，再用真实完成质量、阻力和精力变化持续重规划。
           </p>
 
           <div className="mt-8 grid grid-cols-7 gap-1.5">
-            {["目标", "拆解", "计划", "执行", "记录", "分析", "调整"].map((x, i) => (
-              <div key={x} className={`rounded-md px-2 py-2 text-center text-xs font-semibold ${i < 4 ? "bg-accentsoft text-accent" : "bg-paper text-text2"}`}>
+            {["方向", "拆解", "今日", "执行", "信号", "洞察", "重规划"].map((x, i) => (
+              <div key={x} className={`rounded-[9px] px-2 py-2 text-center text-xs font-semibold ${i === 2 ? "bg-signal text-white" : i < 4 ? "bg-accentsoft text-accent" : "bg-paper text-text2"}`}>
                 {x}
               </div>
             ))}
           </div>
 
-          <div className="mt-8 rounded-lg border border-line/80 bg-card/60 p-5 shadow-[var(--shadow-pressed)]">
+          <div className="mt-8 rounded-[16px] border border-line/80 bg-card/75 p-5 shadow-[var(--shadow-pressed)]">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-bold text-ink">
                 <ShieldCheck size={17} className="text-accent" />
-                今日作战板
+                今日航线预览
               </div>
-              <Tag tone="info">Demo ready</Tag>
+              <Tag tone="signal">Live reroute</Tag>
             </div>
             <div className="space-y-3">
               {[
-                ["长期目标", "3个月学会高尔夫"],
-                ["今日动作", "握杆练习 20 分钟 · 推杆 30 球 · 复盘视频"],
-                ["系统判断", "晚间任务过重，建议把高强度练习移到周末"],
+                ["长期方向", "90 天建立稳定输出系统"],
+                ["下一航点", "关闭通知，完成 45 分钟核心方案写作"],
+                ["重规划", "晚间精力偏低，把高认知任务移到上午"],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-start justify-between gap-4 border-t border-line pt-3 first:border-t-0 first:pt-0">
                   <span className="shrink-0 text-xs font-semibold text-muted">{label}</span>
@@ -128,21 +141,21 @@ function LoginScreen() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-line/80 bg-[rgba(255,250,242,0.78)] p-6 shadow-[var(--shadow-soft)] backdrop-blur-xl">
+        <section className="rounded-[22px] border border-line/80 bg-[rgba(251,253,252,0.92)] p-6 shadow-[var(--shadow-soft)] backdrop-blur-xl">
           <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-white">
-              <Sprout size={22} />
+            <span className="flex h-11 w-11 items-center justify-center rounded-[12px] bg-ink text-white">
+              <Route size={22} />
             </span>
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-ink">Growth OS</h1>
-              <p className="text-xs text-text2">长期成长操作系统</p>
+              <p className="text-xs text-text2">自适应成长导航器</p>
             </div>
           </div>
 
           <div className="mb-6">
-            <div className="text-2xl font-bold tracking-tight text-ink">{mode === "login" ? "欢迎回来" : "创建成长档案"}</div>
+            <div className="display-type text-3xl text-ink">{mode === "login" ? "继续你的航线" : "建立成长坐标"}</div>
             <p className="mt-2 text-sm leading-6 text-text2">
-              {mode === "login" ? "继续今天的目标闭环。" : "写下基础状态，系统会用它安排更贴身的任务。"}
+              {mode === "login" ? "登录后继续今天的下一个航点。" : "写下时间和现实限制，计划才会真正适合你。"}
             </p>
           </div>
 
@@ -161,22 +174,26 @@ function LoginScreen() {
             ))}
           </div>
 
-          <div className="space-y-3">
-            <Field label="用户名" value={name} onChange={setName} />
+          <form className="space-y-3" onSubmit={submit}>
+            <Field label="用户名" value={name} onChange={setName} autoComplete="username" />
             {mode === "register" ? (
               <Field label="当前基础" value={baseline} onChange={setBaseline} placeholder="身份 / 可投入时间 / 强弱项" />
             ) : null}
-            <Field label="密码" value={password} onChange={setPassword} type="password" />
-          </div>
+            <Field label="密码" value={password} onChange={setPassword} type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} />
 
-          {err ? <div className="mt-3 rounded-md bg-dangersoft px-3 py-2 text-sm text-danger">{err}</div> : null}
+            {err ? <div role="alert" className="rounded-[10px] bg-dangersoft px-3 py-2 text-sm text-danger">{err}</div> : null}
 
-          <Btn onClick={submit} disabled={busy} size="lg" className="mt-5 w-full">
-            {busy ? "处理中..." : mode === "login" ? "登录" : "注册并登录"}
+            <Btn type="submit" disabled={busy} size="lg" className="mt-2 w-full">
+              {busy ? "正在连接..." : mode === "login" ? "登录并继续" : "创建账号"}
+            </Btn>
+          </form>
+
+          <div className="my-4 flex items-center gap-3 text-[11px] text-muted"><span className="h-px flex-1 bg-line" />无需后端也能体验<span className="h-px flex-1 bg-line" /></div>
+          <Btn variant="outline" onClick={startDemo} size="lg" className="w-full">
+            <CloudOff size={16} />
+            进入离线完整演示
           </Btn>
-          <div className="mt-4 rounded-md bg-paper px-3 py-2 text-center text-xs text-muted">
-            演示账号: 林知远 / 123456
-          </div>
+          <p className="mt-3 text-center text-[11px] leading-5 text-muted">演示数据只保存在当前浏览器，可随时重置。</p>
         </section>
       </div>
     </main>
@@ -189,6 +206,12 @@ function ProfileModal({ onClose }) {
   const [t, setT] = useState(tone);
   const [err, setErr] = useState("");
 
+  useEffect(() => {
+    const onKeyDown = (event) => { if (event.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   async function save() {
     try {
       const u = await api.updateUser(me.id, { baseline, tone: t });
@@ -200,11 +223,11 @@ function ProfileModal({ onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#4a463f]/30 px-5 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-md rounded-lg border border-line/80 bg-[rgba(255,250,242,0.9)] p-6 shadow-2xl backdrop-blur-xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/35 px-5 backdrop-blur-sm" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-labelledby="profile-title" className="w-full max-w-md rounded-[18px] border border-line/80 bg-card/95 p-6 shadow-2xl backdrop-blur-xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-bold text-ink">编辑资料</h3>
+            <h3 id="profile-title" className="display-type text-2xl text-ink">编辑成长坐标</h3>
             <p className="mt-1 text-xs leading-5 text-text2">基础状态会进入 AI 规划上下文。</p>
           </div>
           <span className="flex h-9 w-9 items-center justify-center rounded-md bg-accentsoft text-accent">
@@ -263,13 +286,15 @@ function Companion() {
       <button
         onClick={toggleCompanion}
         aria-label="成长伙伴"
+        aria-expanded={compOpen}
+        aria-controls="growth-companion"
         className={`fixed bottom-20 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition lg:bottom-6 lg:right-6 ${compOpen ? "bg-accent text-white" : "border border-line/80 bg-card/85 text-accent backdrop-blur-xl hover:scale-105"}`}
       >
         {compOpen ? <MessageCircle size={24} /> : <Bot size={24} />}
       </button>
 
       {compOpen ? (
-        <div className="fixed bottom-36 right-5 z-40 flex h-[420px] w-[calc(100vw-2.5rem)] max-w-sm flex-col overflow-hidden rounded-lg border border-line/80 bg-[rgba(255,250,242,0.9)] shadow-2xl backdrop-blur-xl lg:bottom-24 lg:right-6 lg:w-[22rem]">
+        <div id="growth-companion" role="dialog" aria-label="成长伙伴对话" className="fixed bottom-36 right-5 z-40 flex h-[420px] w-[calc(100vw-2.5rem)] max-w-sm flex-col overflow-hidden rounded-[18px] border border-line/80 bg-card/95 shadow-2xl backdrop-blur-xl lg:bottom-24 lg:right-6 lg:w-[22rem]">
           <div className="flex items-center justify-between border-b border-line/80 bg-accentsoft/80 px-4 py-3">
             <div className="flex items-center gap-2.5">
               <span className="flex h-9 w-9 items-center justify-center rounded-md bg-card text-accent">
@@ -283,7 +308,7 @@ function Companion() {
             <Sparkles size={16} className="text-accent" />
           </div>
 
-          <div className="flex-1 space-y-2 overflow-y-auto bg-paper/55 px-4 py-3">
+          <div className="flex-1 space-y-2 overflow-y-auto bg-paper/55 px-4 py-3" aria-live="polite">
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[82%] rounded-lg px-3 py-2 text-sm leading-6 ${m.role === "user" ? "bg-accent text-white" : "border border-line/80 bg-card/75 text-ink"}`}>
@@ -316,6 +341,7 @@ function NavLink({ item, active }) {
   return (
     <Link
       href={item.href}
+      aria-current={active ? "page" : undefined}
       className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold transition ${active ? "bg-accentsoft text-accent" : "text-text2 hover:bg-paper hover:text-ink"}`}
     >
       <Icon size={18} strokeWidth={active ? 2.4 : 2} />
@@ -326,13 +352,13 @@ function NavLink({ item, active }) {
 
 function MobileNav({ path }) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line/70 bg-[rgba(255,250,242,0.86)] px-2 py-2 shadow-[0_-8px_24px_rgba(84,74,58,0.1)] backdrop-blur-xl lg:hidden">
+    <nav aria-label="主要导航" className="fixed inset-x-0 bottom-0 z-30 border-t border-line/70 bg-[rgba(247,251,250,0.9)] px-2 py-2 shadow-[0_-8px_24px_rgba(25,61,66,0.1)] backdrop-blur-xl lg:hidden">
       <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
         {NAV.map((n) => {
           const Icon = n.icon;
           const active = path === n.href;
           return (
-            <Link key={n.href} href={n.href} className={`flex flex-col items-center gap-1 rounded-md px-2 py-2 text-[11px] font-semibold ${active ? "bg-accentsoft text-accent" : "text-muted"}`}>
+            <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={`flex flex-col items-center gap-1 rounded-md px-2 py-2 text-[11px] font-semibold ${active ? "bg-accentsoft text-accent" : "text-muted"}`}>
               <Icon size={18} />
               <span>{n.label}</span>
             </Link>
@@ -346,9 +372,9 @@ function MobileNav({ path }) {
 function CelebrationModal({ goals, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-5" onClick={onClose}>
-      <div className="w-full max-w-md rounded-lg border border-warn/30 bg-card p-7 text-center shadow-[var(--shadow-soft)]" onClick={(e) => e.stopPropagation()}>
+      <div role="dialog" aria-modal="true" aria-labelledby="celebration-title" className="w-full max-w-md rounded-[18px] border border-warn/30 bg-card p-7 text-center shadow-[var(--shadow-soft)]" onClick={(e) => e.stopPropagation()}>
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-warn text-white shadow-[var(--shadow-pressed)]"><Trophy size={30} /></div>
-        <div className="text-lg font-bold text-ink">恭喜!目标到期达成 🎉</div>
+        <div id="celebration-title" className="display-type text-2xl text-ink">新的抵达记录</div>
         <div className="mt-3 space-y-1.5">
           {goals.map((g) => <div key={g.id} className="rounded-md bg-warnsoft px-3 py-2 text-sm font-semibold text-ink">{g.title}</div>)}
         </div>
@@ -360,7 +386,7 @@ function CelebrationModal({ goals, onClose }) {
 }
 
 export default function Shell({ children }) {
-  const { me, logout, simDate, dayN, tone, newlyCompleted, clearCelebration } = useGrowth();
+  const { me, logout, simDate, dayN, tone, newlyCompleted, clearCelebration, isDemo, resetDemoData, dataStatus, dataError } = useGrowth();
   const [profile, setProfile] = useState(false);
   const path = usePathname();
 
@@ -368,15 +394,15 @@ export default function Shell({ children }) {
 
   return (
     <div className="min-h-screen lg:flex">
-      <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col border-r border-line/70 bg-[rgba(255,250,242,0.7)] shadow-[var(--shadow-card)] backdrop-blur-xl lg:flex">
+      <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col border-r border-line/70 bg-[rgba(247,251,250,0.86)] shadow-[var(--shadow-card)] backdrop-blur-xl lg:flex">
         <div className="px-5 py-5">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-white">
-              <Sprout size={20} />
+            <span className="flex h-10 w-10 items-center justify-center rounded-[11px] bg-ink text-white">
+              <Route size={20} />
             </span>
             <div>
               <div className="text-lg font-bold tracking-tight text-ink">Growth OS</div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">Daily growth cockpit</div>
+              <div className="data-type text-[10px] font-semibold uppercase tracking-[0.14em] text-accent">Adaptive route</div>
             </div>
           </div>
         </div>
@@ -407,15 +433,16 @@ export default function Shell({ children }) {
           {NAV.map((n) => <NavLink key={n.href} item={n} active={path === n.href} />)}
         </nav>
 
-        <div className="relative mx-4 mb-4 overflow-hidden rounded-lg border border-line/80 bg-card/50 p-3">
+        <div className="relative mx-4 mb-4 overflow-hidden rounded-[14px] border border-line/80 bg-card/60 p-3">
           <BotanicalAccent className="absolute -bottom-10 -right-12 h-28 w-36 rotate-[-18deg] opacity-25" />
           <div className="relative z-10 flex items-center gap-2 text-xs font-bold text-ink">
             <Sparkles size={14} className="text-accent" />
-            单 Agent · 4 Prompt
+            计划会根据你重新导航
           </div>
           <div className="relative z-10 mt-2 grid grid-cols-2 gap-1.5 text-[11px] font-semibold text-text2">
-            {["拆解", "计划", "分析", "调整"].map((x) => <span key={x} className="rounded bg-paper/70 px-2 py-1 text-center">{x}</span>)}
+            {["拆解", "执行", "识别偏航", "重规划"].map((x) => <span key={x} className="rounded bg-paper/70 px-2 py-1 text-center">{x}</span>)}
           </div>
+          {isDemo ? <button onClick={resetDemoData} className="relative z-10 mt-3 flex w-full items-center justify-center gap-1.5 rounded-[9px] border border-accent/20 bg-accentsoft px-2 py-1.5 text-[11px] font-semibold text-accent"><RotateCcw size={12} />重置演示数据</button> : null}
         </div>
 
         <div className="border-t border-line/70 px-4 py-3">
@@ -426,10 +453,10 @@ export default function Shell({ children }) {
         </div>
       </aside>
 
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line/70 bg-[rgba(245,238,223,0.78)] px-4 py-3 backdrop-blur-xl lg:hidden">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line/70 bg-[rgba(237,244,243,0.84)] px-4 py-3 backdrop-blur-xl lg:hidden">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-white">
-            <Sprout size={18} />
+          <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-ink text-white">
+            <Route size={18} />
           </span>
           <div>
             <div className="text-sm font-bold text-ink">Growth OS</div>
@@ -442,7 +469,17 @@ export default function Shell({ children }) {
       </header>
 
       <main className="flex-1 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-8">
-        <div className="mx-auto max-w-7xl">{children}</div>
+        <div className="mx-auto max-w-7xl">
+          {isDemo ? (
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-info/20 bg-infosoft/90 px-4 py-3 text-xs text-text2" role="status">
+              <span className="flex items-center gap-2"><CloudOff size={15} className="text-info" /><strong className="text-ink">离线演示</strong> 所有核心流程可用，数据只保存在当前浏览器。</span>
+              <button onClick={resetDemoData} className="flex items-center gap-1.5 font-semibold text-info hover:text-ink"><RotateCcw size={13} />恢复初始数据</button>
+            </div>
+          ) : null}
+          {dataError ? <div role="alert" className="mb-5 rounded-[14px] border border-danger/20 bg-dangersoft px-4 py-3 text-sm text-danger">{dataError}</div> : null}
+          {dataStatus === "loading" ? <div className="mb-4 h-1 overflow-hidden rounded-full bg-line"><div className="h-full w-1/3 animate-pulse rounded-full bg-signal" /></div> : null}
+          {children}
+        </div>
       </main>
 
       <Companion />

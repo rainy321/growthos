@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Pydantic 入参/出参模型。字段对齐 docs/数据契约.md。"""
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 
@@ -11,8 +11,8 @@ class User(BaseModel):
 
 
 class UserCreate(BaseModel):
-    name: str
-    baseline: Optional[str] = None
+    name: str = Field(min_length=2, max_length=40)
+    baseline: Optional[str] = Field(default=None, max_length=500)
 
 
 class Goal(BaseModel):
@@ -26,11 +26,11 @@ class Goal(BaseModel):
 
 class GoalCreate(BaseModel):
     user_id: str
-    title: str
-    category: Optional[str] = None
-    time_horizon: Optional[str] = None
-    status: str = "active"
-    start_date: Optional[str] = None
+    title: str = Field(min_length=2, max_length=120)
+    category: Optional[str] = Field(default=None, max_length=30)
+    time_horizon: Optional[str] = Field(default=None, max_length=30)
+    status: Literal["active", "paused", "done"] = "active"
+    start_date: Optional[str] = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
 
 
 class Task(BaseModel):

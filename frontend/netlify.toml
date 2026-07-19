@@ -1,14 +1,8 @@
-# Netlify 配置:静态导出(out/)+ /api 代理到 Render
+# Netlify 配置：静态导出到 out/。
+# 真实后端地址通过 NEXT_PUBLIC_API_BASE 注入，避免把旧演示服务写死在代码中。
 [build]
   command = "npm run build"
   publish = "out"
-
-# /api 走代理 → Render(浏览器只跟 Netlify 通信,不直连 onrender)
-[[redirects]]
-  from = "/api/*"
-  to = "https://growth-os-backend.onrender.com/api/:splat"
-  status = 200
-  force = true
 
 # 其余路径用 index.html 兜底(支持刷新子路由 / 前端路由)
 [[redirects]]
